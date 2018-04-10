@@ -9,10 +9,6 @@ An AQTS field data plugin supporting FlowTracker2 measurement files.
 - Download the latest release of the plugin [here](../../releases/latest)
 - Install it using the [FieldVisitPluginTool](https://github.com/AquaticInformatics/aquarius-field-data-framework/tree/master/src/FieldDataPluginTool)
 
-## Supported CSV format
-
-The format of the CSV files supported by this plugin is described [here](src/FlowTracker2Plugin)
-
 ## Requirements for building the plugin from source
 
 - Requires Visual Studio 2017 (Community Edition is fine)
