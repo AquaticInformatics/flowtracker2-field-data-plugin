@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowTracker2Plugin", "Flowtracker2Plugin\FlowTracker2Plugin.csproj", "{D0366373-258D-481C-BCF6-4BF534493B1B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RepoRoot", "RepoRoot", "{F8D64F4E-2858-441C-98B6-2D6707BC19FA}"
+	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D0366373-258D-481C-BCF6-4BF534493B1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0366373-258D-481C-BCF6-4BF534493B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0366373-258D-481C-BCF6-4BF534493B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0366373-258D-481C-BCF6-4BF534493B1B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {45CA77E6-33C9-4C1F-BA7D-0FECF70538A5}
+	EndGlobalSection
+EndGlobal

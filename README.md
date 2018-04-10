@@ -27,9 +27,9 @@ The format of the CSV files supported by this plugin is described [here](src/Flo
 
 Use the included `PluginTester.exe` tool from the `Aquarius.FieldDataFramework` package to test your plugin logic on the sample files.
 
-1. Open the EhsnPlugin project's **Properties** page
+1. Open the FlowTracker2Plugin project's **Properties** page
 2. Select the **Debug** tab
-3. Select **Start external program:** as the start action and browse to `"src\packages\Aquarius.FieldDataFramework.17.4.1\tools\PluginTester.exe`
+3. Select **Start external program:** as the start action and browse to `"src\packages\Aquarius.FieldDataFramework.17.4.3\tools\PluginTester.exe`
 4. Enter the **Command line arguments:** to launch your plugin
 
 ```
