@@ -73,24 +73,35 @@ namespace FlowTracker2Plugin
 
                         var dataFile = new DataFileComplete(tempPath).GetDataFile();
 
-                        _log.Info($"Loaded {dataFile.Configuration.DataCollectionMode}.{dataFile.Configuration.Discharge.DischargeEquation} measurement from {dataFile.HandheldInfo.SerialNumber}/{dataFile.HandheldInfo.CpuSerialNumber}/{dataFile.HandheldInfo.SoftwareVersion}");
+                        _log.Info(
+                            $"Loaded {dataFile.Configuration.DataCollectionMode}.{dataFile.Configuration.Discharge.DischargeEquation} measurement from {dataFile.HandheldInfo.SerialNumber}/{dataFile.HandheldInfo.CpuSerialNumber}/{dataFile.HandheldInfo.SoftwareVersion}");
 
                         return dataFile;
                     }
                 }
             }
-            catch (ZipException e)
+            catch (Exception exception)
             {
-                // We quickly land here if a non-ZIP file is parsed
-                LogException("ZipException", e);
-                return null;
+                if (IsNotAZipArchiveException(exception) || IsInvalidFlowTrackerArchive(exception))
+                {
+                    // Stop parsing silently on the expected failure cases
+                    return null;
+                }
+
+                throw;
             }
-            catch (IOException e)
-            {
-                // We quickly land here if a ZIP archive is parsed, but it doesn't contain the expected FlowTracker2 JSON content.
-                LogException("IOException", e);
-                return null;
-            }
+        }
+
+        private static bool IsNotAZipArchiveException(Exception exception)
+        {
+            return exception is ZipException &&
+                   exception.Message.StartsWith("Wrong Local header signature:", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static bool IsInvalidFlowTrackerArchive(Exception exception)
+        {
+            return exception is IOException &&
+                   exception.Message.Equals("Not found", StringComparison.InvariantCultureIgnoreCase);
         }
 
         private void LogException(string message, Exception exception)
@@ -133,6 +144,8 @@ namespace FlowTracker2Plugin
             }
             catch (Exception exception)
             {
+                // Something has gone sideways rather hard. The framework won't log the exception's stack trace
+                // so we explicitly do that here, to help track down any bugs.
                 LogException("Parsing error", exception);
                 return ParseFileResult.SuccessfullyParsedButDataInvalid(exception);
             }
@@ -140,28 +153,14 @@ namespace FlowTracker2Plugin
 
         private UnitSystem CreateUnitSystem()
         {
-            // This is a bit odd. The sample data file I've seen has "Units" = "English", yet is still using metric units everywhere
-            var isMetric = true; // dataFile.HandheldInfo.Settings.GetEnum<UnitType>("Units") == UnitType.Metric;
-
-            // The Metric and Imperial unit IDs listed here are stock in every AQTS system and cannot be deleted.
-            // It is safe to hard-code these unit IDs
-
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            return isMetric
-                ? new UnitSystem
-                {
-                    DistanceUnitId = "m",
-                    AreaUnitId = "m^2",
-                    VelocityUnitId = "m/s",
-                    DischargeUnitId = "m^3/s",
-                }
-                : new UnitSystem
-                {
-                    DistanceUnitId = "ft",
-                    AreaUnitId = "ft^2",
-                    VelocityUnitId = "ft/s",
-                    DischargeUnitId = "ft^3/s",
-                };
+            // FlowTracker2 measurements are always persisted in metric.
+            return new UnitSystem
+            {
+                DistanceUnitId = "m",
+                AreaUnitId = "m^2",
+                VelocityUnitId = "m/s",
+                DischargeUnitId = "m^3/s",
+            };
         }
 
         private FieldVisitInfo CreateVisit(LocationInfo locationInfo)
