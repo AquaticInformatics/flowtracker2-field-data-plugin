@@ -128,8 +128,7 @@ namespace FlowTracker2Plugin
 
                 var manualGauging = CreateManualGauging(dischargeActivity);
 
-                var startStationType = DataFile.Stations.First().StationType;
-                var endStationType = DataFile.Stations.Last().StationType;
+                ValidateStartAndEndStations(out var startStationType, out var endStationType);
 
                 foreach (var station in DataFile.Stations)
                 {
@@ -187,6 +186,21 @@ namespace FlowTracker2Plugin
 
             return dischargeActivity;
         }
+
+        private void ValidateStartAndEndStations(out StationType startStationType, out StationType endStationType)
+        {
+            startStationType = DataFile.Stations.First().StationType;
+            endStationType = DataFile.Stations.Last().StationType;
+
+            if (!ValidBankTypes.Contains(startStationType) || !ValidBankTypes.Contains(endStationType) || startStationType == endStationType)
+                throw new Exception($"Measurements must start and end at a bank. StartStationType={startStationType} EndStationType={endStationType}");
+        }
+
+        private static readonly HashSet<StationType> ValidBankTypes = new HashSet<StationType>
+        {
+            StationType.RightBank,
+            StationType.LeftBank
+        };
 
         private void AddTemperatureReadings(FieldVisitInfo visit)
         {
@@ -259,12 +273,11 @@ namespace FlowTracker2Plugin
 
         private Vertical CreateVertical(Station station, StationType startStationType, StationType endStationType)
         {
-            // TODO: Need to think about island measurements
             var verticalType = station.StationType == startStationType
                 ? VerticalType.StartEdgeNoWaterBefore
                 : station.StationType == endStationType
                     ? VerticalType.EndEdgeNoWaterAfter
-                    : VerticalType.MidRiver;
+                    : VerticalType.MidRiver; // IslandEdge, OpenWater, and Ice all map to MidRiver
 
             var vertical = new Vertical
             {
@@ -278,7 +291,7 @@ namespace FlowTracker2Plugin
                 {
                     VelocityObservationMethod = GetPointVelocityObservationType(station.VelocityMethod),
                     MeterCalibration = CreateMeterCalibration(station),
-                    MeanVelocity = station.Calculations.MeanVelocityInVertical.X, // TODO: Is this MidSection vs MeanSection
+                    MeanVelocity = station.Calculations.MeanVelocityInVertical.X,
                     DeploymentMethod = DeploymentMethodType.Unspecified,
                 },
                 FlowDirection = FlowDirectionType.Normal,
@@ -306,7 +319,7 @@ namespace FlowTracker2Plugin
 
             if (!vertical.VelocityObservation.Observations.Any())
             {
-                // TODO: Make sure this match works out
+                // IslandEdge stations or just plain surface points with no depth
                 vertical.VelocityObservation.VelocityObservationMethod = PointVelocityObservationType.Surface;
                 vertical.VelocityObservation.Observations.Add(new VelocityDepthObservation
                 {
