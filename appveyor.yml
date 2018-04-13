@@ -27,12 +27,16 @@ artifacts:
     name: ThePlugin
     type: file
 
+  - path: src\FlowTracker2Converter\bin\Release\FlowTracker2Converter.exe
+    name: TheConverter
+    type: file
+
 deploy:
   - provider: GitHub
     tag: v$(APPVEYOR_BUILD_VERSION)
     release: FlowTracker2 plugin $(APPVEYOR_BUILD_VERSION)
     description: ''
-    artifact: ThePlugin
+    artifact: ThePlugin, TheConverter
     auth_token: $(GITHUB_AUTH_TOKEN)
     on:
       is_not_pr: true
