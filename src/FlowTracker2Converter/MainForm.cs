@@ -105,13 +105,17 @@ namespace FlowTracker2Converter
             var fileDialog = new OpenFileDialog
             {
                 RestoreDirectory = true,
+                Multiselect = true,
                 Filter = @"FlowTracker2 files (*.ft)|*.ft|All Files(*.*)|*.*",
                 Title = @"Select the FlowTracker2 file to convert"
             };
 
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                TryConvertFile(fileDialog.FileName);
+                foreach (var path in fileDialog.FileNames)
+                {
+                    TryConvertFile(path);
+                }
             }
         }
 
@@ -139,8 +143,6 @@ namespace FlowTracker2Converter
             Info($"Loading '{sourcePath}' ...");
 
             var dataFile = LoadDataFile(sourcePath);
-
-            Info($"Loaded {dataFile.Configuration.DataCollectionMode}.{dataFile.Configuration.Discharge.DischargeEquation} measurement from {dataFile.HandheldInfo.SerialNumber}/{dataFile.HandheldInfo.CpuSerialNumber}/{dataFile.HandheldInfo.SoftwareVersion}");
 
             var targetPath = Path.ChangeExtension(sourcePath, ".dis");
 
@@ -192,8 +194,8 @@ namespace FlowTracker2Converter
             var sb = new StringBuilder();
 
             sb.AppendLine();
-            var utcOffset = dataFile.HandheldInfo.Settings.GetTimeSpan("LocalTimeOffsetFromUtc").Negate();
-            var startTime = new DateTimeOffset(dataFile.Properties.StartTime, utcOffset);
+            var utcOffset = dataFile.HandheldInfo.Settings?.GetTimeSpan("LocalTimeOffsetFromUtc") ?? TimeSpan.Zero;
+            var startTime = CreateDateTimeOffset(dataFile.Properties.StartTime, utcOffset);
             AppendValue(sb, "File_Name", Path.GetFileName(sourcePath));
             AppendValue(sb, "Start_Date_and_Time", $"{startTime:yyyy/MM/dd HH:mm:ss}");
             AppendValue(sb, "Site_Name", dataFile.Properties.SiteNumber);
@@ -221,7 +223,21 @@ namespace FlowTracker2Converter
 
             sb.AppendLine();
             sb.AppendLine("Discharge_Uncertainty_(ISO)");
-            AppendValue(sb, "Overall", $"{dataFile.Calculations.UncertaintyIso.Overall:F1} %");
+            AppendPercentage(sb, "Overall", dataFile.Calculations.UncertaintyIso.Overall);
+            AppendPercentage(sb, "Accuracy", dataFile.Calculations.UncertaintyIso.Accuracy);
+            AppendPercentage(sb, "Depth", dataFile.Calculations.UncertaintyIso.Depth);
+            AppendPercentage(sb, "Velocity", dataFile.Calculations.UncertaintyIso.Velocity);
+            AppendPercentage(sb, "Width", dataFile.Calculations.UncertaintyIso.Width);
+            AppendPercentage(sb, "Method", dataFile.Calculations.UncertaintyIso.Method);
+            AppendPercentage(sb, "#_Stations", dataFile.Calculations.UncertaintyIso.NumberOfStations);
+
+            sb.AppendLine();
+            sb.AppendLine("Discharge_Uncertainty_(Statistical)");
+            AppendPercentage(sb, "Overall", dataFile.Calculations.UncertaintyIve.Overall);
+            AppendPercentage(sb, "Accuracy", dataFile.Calculations.UncertaintyIve.Accuracy);
+            AppendPercentage(sb, "Depth", dataFile.Calculations.UncertaintyIve.Depth);
+            AppendPercentage(sb, "Velocity", dataFile.Calculations.UncertaintyIve.Velocity);
+            AppendPercentage(sb, "Width", dataFile.Calculations.UncertaintyIve.Width);
 
             var gageHeight = dataFile.Calculations.GaugeHeight;
 
@@ -240,11 +256,11 @@ namespace FlowTracker2Converter
             for (var i = 0; i < dataFile.Stations.Count; ++i)
             {
                 var station = dataFile.Stations[i];
-                var time = new DateTimeOffset(station.CreationTime, utcOffset);
+                var time = CreateDateTimeOffset(station.CreationTime, utcOffset);
 
                 if (!VelocityMethods.TryGetValue(station.VelocityMethod, out var method))
                 {
-                    method = "0.0";
+                    method = "0.0"; // This gets treated as "Other" by 3.X
                 }
 
                 var calc = station.Calculations;
@@ -255,10 +271,15 @@ namespace FlowTracker2Converter
                 var temp = Sanitize(calc.Temperature);
 
                 //              St      Clock                             Loc                             Depth      IceD        %Dep                         MeasD             Npts           Spike                                   Vel        SNR       Angle         Verr Bnd         Temp                           CorrFact                        MeanV            Area                  Flow     %Q
-                sb.AppendLine($"{i,-2}  {time:HH:mm}    {station.Location:F2}  {station.GetEffectiveDepth():F3}  {ice:F3}  {method,3}  {station.GetFinalDepth():F3} {calc.Samples,4} {calc.Spikes,5}    {calc.MeanVelocityInVertical.X:F3} {snr,4:F1} {angle,4:F0}   {vErr:F4}   0  {temp,6:F2}    {station.CorrectionFactor,5:F2}  {calc.MeanPanelVelocity.X:F4}  {calc.Area:F3}   {calc.Discharge:F4}   {100 * calc.FractionOfTotalDischarge:F1}");
+                sb.AppendLine($"{i,-2}  {time:HH:mm}  {station.Location,5:F2}  {station.GetEffectiveDepth():F3}  {ice:F3}  {method,3}  {station.GetFinalDepth():F3} {calc.Samples,4} {calc.Spikes,5}    {calc.MeanVelocityInVertical.X:F3} {snr,4:F1} {angle,4:F0}   {vErr:F4}   0  {temp,6:F2}    {station.CorrectionFactor,5:F2}  {calc.MeanPanelVelocity.X:F4}  {calc.Area:F3}   {calc.Discharge:F4}   {100 * calc.FractionOfTotalDischarge:F1}");
             }
 
             return sb.ToString();
+        }
+
+        private static DateTimeOffset CreateDateTimeOffset(DateTime dateTime, TimeSpan utcOffset)
+        {
+            return new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified), utcOffset);
         }
 
         private static readonly Dictionary<VelocityMethod, string> VelocityMethods =
@@ -280,6 +301,11 @@ namespace FlowTracker2Converter
         private void AppendValue(StringBuilder sb, string name, string value = null)
         {
             sb.AppendLine($"{name,-34}{value}");
+        }
+
+        private void AppendPercentage(StringBuilder sb, string name, double value)
+        {
+            AppendValue(sb, name, $"{100 * value:F1} %");
         }
     }
 }
