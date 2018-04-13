@@ -243,10 +243,13 @@ namespace FlowTracker2Converter
 
             if (!double.IsNaN(gageHeight))
             {
+                var meanTimeUtc = new DateTime((dataFile.Properties.StartTime.Ticks + dataFile.Properties.EndTime.Ticks) / 2, DateTimeKind.Utc);
+                var meanTime = CreateDateTimeOffset(meanTimeUtc, utcOffset);
+
                 sb.AppendLine();
                 sb.AppendLine("Supplemental_Data");
                 sb.AppendLine(" Record        Date     Time   Location(ft)   Gauge_Height(ft)  Rated_Flow(cfs)  Comments");
-                sb.AppendLine($"     01                   ()            ()            {gageHeight:F3}                 ()  ");
+                sb.AppendLine($"     01  {meanTime:yyyy/MM/dd} {meanTime:HH:mm:ss}             ()            {gageHeight,6:F3}                ()  ");
             }
 
             sb.AppendLine();
