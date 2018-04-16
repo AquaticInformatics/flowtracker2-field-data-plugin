@@ -245,16 +245,20 @@ namespace FlowTracker2Converter
             {
                 var meanTimeUtc = new DateTime((dataFile.Properties.StartTime.Ticks + dataFile.Properties.EndTime.Ticks) / 2, DateTimeKind.Utc);
                 var meanTime = CreateDateTimeOffset(meanTimeUtc, utcOffset);
+                var ratedFlow = !double.IsNaN(dataFile.Calculations.RatedDischarge)
+                    ? $"{dataFile.Calculations.RatedDischarge:F3}"
+                    : "()";
+                var dummyLocation = "()";
 
                 sb.AppendLine();
                 sb.AppendLine("Supplemental_Data");
-                sb.AppendLine(" Record        Date     Time   Location(ft)   Gauge_Height(ft)  Rated_Flow(cfs)  Comments");
-                sb.AppendLine($"     01  {meanTime:yyyy/MM/dd} {meanTime:HH:mm:ss}             ()            {gageHeight,6:F3}                ()  ");
+                sb.AppendLine(" Record        Date     Time   Location(m)    Gauge_Height(m) Rated_Flow(m^3/s)  Comments");
+                sb.AppendLine($"     01  {meanTime:yyyy/MM/dd} {meanTime:HH:mm:ss}        {dummyLocation,6}             {gageHeight,6:F3}          {ratedFlow,8}  ");
             }
 
             sb.AppendLine();
             sb.AppendLine("St  Clock     Loc  Depth   IceD %Dep  MeasD Npts Spike     Vel   SNR Angle    Verr Bnd    Temp CorrFact   MeanV   Area     Flow   %Q");
-            sb.AppendLine("()     ()    (ft)   (ft)   (ft) (*D)   (ft)   ()    ()  (ft/s)  (dB) (deg)  (ft/s)  ()  (degF)    ()     (ft/s) (ft^2)    (cfs)  (%)");
+            sb.AppendLine("()     ()     (m)    (m)    (m) (*D)    (m)   ()    ()   (m/s)  (dB) (deg)   (m/s)  ()  (degC)    ()      (m/s)  (m^2)  (m^3/s)  (%)");
 
             for (var i = 0; i < dataFile.Stations.Count; ++i)
             {
@@ -272,9 +276,10 @@ namespace FlowTracker2Converter
                 var snr = Sanitize(calc.Snr.Beam1);
                 var vErr = Sanitize(calc.VelocityStandardError.X);
                 var temp = Sanitize(calc.Temperature);
+                var dummyBand = "0";
 
-                //              St      Clock                             Loc                             Depth      IceD        %Dep                         MeasD             Npts           Spike                                   Vel        SNR       Angle         Verr Bnd         Temp                           CorrFact                        MeanV            Area                  Flow     %Q
-                sb.AppendLine($"{i,-2}  {time:HH:mm}  {station.Location,5:F2}  {station.GetEffectiveDepth():F3}  {ice:F3}  {method,3}  {station.GetFinalDepth():F3} {calc.Samples,4} {calc.Spikes,5}    {calc.MeanVelocityInVertical.X:F3} {snr,4:F1} {angle,4:F0}   {vErr:F4}   0  {temp,6:F2}    {station.CorrectionFactor,5:F2}  {calc.MeanPanelVelocity.X:F4}  {calc.Area:F3}   {calc.Discharge:F4}   {100 * calc.FractionOfTotalDischarge:F1}");
+                //              St      Clock                             Loc                              Depth      IceD        %Dep                          MeasD             Npts           Spike                                   Vel        SNR       Angle         Verr            Bnd         Temp                           CorrFact                            MeanV            Area                  Flow     %Q
+                sb.AppendLine($"{i,-2}  {time:HH:mm}  {station.Location,6:F2} {station.GetEffectiveDepth(),6:F3}  {ice:F3}  {method,3} {station.GetFinalDepth(),6:F3} {calc.Samples,4} {calc.Spikes,5}  {calc.MeanVelocityInVertical.X,6:F3} {snr,5:F1} {angle,5:F0}  {vErr,6:F4} {dummyBand,3}  {temp,6:F2}    {station.CorrectionFactor,5:F2} {calc.MeanPanelVelocity.X,7:F4} {calc.Area,6:F3} {calc.Discharge,8:F4} {100 * calc.FractionOfTotalDischarge,4:F1}");
             }
 
             return sb.ToString();
