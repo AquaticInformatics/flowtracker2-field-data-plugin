@@ -239,21 +239,25 @@ namespace FlowTracker2Converter
             AppendPercentage(sb, "Velocity", dataFile.Calculations.UncertaintyIve.Velocity);
             AppendPercentage(sb, "Width", dataFile.Calculations.UncertaintyIve.Width);
 
-            var gageHeight = dataFile.Calculations.GaugeHeight;
+            var gaugeHeightMeasurements = dataFile.SupplementalData.Where(sd => !double.IsNaN(sd.GaugeHeight)).ToList();
 
-            if (!double.IsNaN(gageHeight))
+            if (gaugeHeightMeasurements.Any())
             {
-                var meanTimeUtc = new DateTime((dataFile.Properties.StartTime.Ticks + dataFile.Properties.EndTime.Ticks) / 2, DateTimeKind.Utc);
-                var meanTime = CreateDateTimeOffset(meanTimeUtc, utcOffset);
-                var ratedFlow = !double.IsNaN(dataFile.Calculations.RatedDischarge)
-                    ? $"{dataFile.Calculations.RatedDischarge:F3}"
-                    : "()";
-                var dummyLocation = "()";
-
                 sb.AppendLine();
                 sb.AppendLine("Supplemental_Data");
                 sb.AppendLine(" Record        Date     Time   Location(m)    Gauge_Height(m) Rated_Flow(m^3/s)  Comments");
-                sb.AppendLine($"     01  {meanTime:yyyy/MM/dd} {meanTime:HH:mm:ss}        {dummyLocation,6}             {gageHeight,6:F3}          {ratedFlow,8}  ");
+
+                for(var i = 0; i < gaugeHeightMeasurements.Count; ++i)
+                {
+                    var gaugeHeight = gaugeHeightMeasurements[i];
+                    var ratedFlow = !double.IsNaN(gaugeHeight.RatedDischarge)
+                        ? $"{gaugeHeight.RatedDischarge:F3}"
+                        : "()";
+                    var dummyLocation = "()";
+
+                    //                    Record                  Date                                 Time              Location(m)               Gauge_Height(m)                   Rated_Flow(m^3/s)  Comments
+                    sb.AppendLine($"     {1+i,2}  {gaugeHeight.Time:yyyy/MM/dd} {gaugeHeight.Time:HH:mm:ss}        {dummyLocation,6}             {gaugeHeight.GaugeHeight,6:F3}          {ratedFlow,8}  ");
+                }
             }
 
             sb.AppendLine();

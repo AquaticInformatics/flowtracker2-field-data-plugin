@@ -244,15 +244,18 @@ namespace FlowTracker2Plugin
 
         private void AddGageHeightMeasurement(DischargeActivity dischargeActivity)
         {
-            var gageHeight = DataFile.Calculations.GaugeHeight;
+            var gaugeHeightMeasurements = DataFile.SupplementalData.Where(sd => !double.IsNaN(sd.GaugeHeight)).ToList();
 
-            if (double.IsNaN(gageHeight))
-            {
+            if (!gaugeHeightMeasurements.Any())
                 return;
-            }
 
-            dischargeActivity.GageHeightMeasurements.Add(
-                new GageHeightMeasurement(new Measurement(gageHeight, UnitSystem.DistanceUnitId)));
+            foreach (var gaugeHeightMeasurement in gaugeHeightMeasurements)
+            {
+                dischargeActivity.GageHeightMeasurements.Add(
+                    new GageHeightMeasurement(
+                        new Measurement(gaugeHeightMeasurement.GaugeHeight, UnitSystem.DistanceUnitId),
+                        gaugeHeightMeasurement.Time));
+            }
         }
 
         private DischargeMethodType CreateDischargeMethodType()
