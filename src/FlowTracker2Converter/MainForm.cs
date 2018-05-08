@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using ICSharpCode.SharpZipLib.Zip;
 using log4net;
+using Microsoft.Win32;
 using SonTek.Framework.Configuration;
 using SonTek.Framework.Data;
 
@@ -83,8 +84,60 @@ namespace FlowTracker2Converter
             KeepOutputVisible();
         }
 
+        private const string LicenseAgreementKeyPath = @"HKEY_CURRENT_USER\SOFTWARE\Aquatic Informatics\FlowTracker2Converter";
+        private const string LicenseAgreementValueName = "LicenseAgreement";
+
+        private bool IsLicenseAccepted()
+        {
+            return !string.IsNullOrEmpty((string)Registry.GetValue(
+                LicenseAgreementKeyPath,
+                LicenseAgreementValueName,
+                null));
+        }
+
+        private void SetLicenseAcceptanceStatus(bool accepted)
+        {
+            Registry.SetValue(
+                LicenseAgreementKeyPath,
+                LicenseAgreementValueName,
+                accepted ? "Accepted" : string.Empty);
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            licenseCheckBox.Checked = IsLicenseAccepted();
+
+            UpdateLicensedControls();
+        }
+
+        private void licenseCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            SetLicenseAcceptanceStatus(licenseCheckBox.Checked);
+
+            UpdateLicensedControls();
+        }
+
+        private void UpdateLicensedControls()
+        {
+            if (licenseCheckBox.Checked)
+            {
+                convertButton.Enabled = true;
+                return;
+            }
+
+            Warn("You will need to accept the license terms to use this tool.");
+            convertButton.Enabled = false;
+        }
+
+        private void viewLicenseButton_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/blob/master/src/FlowTracker2Converter/Readme.md");
+        }
+
         private void OnDragDrop(object sender, DragEventArgs e)
         {
+            if (!licenseCheckBox.Checked) return;
+
             if (!(e.Data.GetData(DataFormats.FileDrop) is string[] paths)) return;
 
             foreach (var path in paths)
@@ -95,7 +148,7 @@ namespace FlowTracker2Converter
 
         private void OnDragOver(object sender, DragEventArgs e)
         {
-            e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop)
+            e.Effect = licenseCheckBox.Checked && e.Data.GetDataPresent(DataFormats.FileDrop)
                 ? DragDropEffects.Link
                 : DragDropEffects.None;
         }
