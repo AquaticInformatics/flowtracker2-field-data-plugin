@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/vfsxbalu9pafgeab/branch/master?svg=true)](https://ci.appveyor.com/project/SystemsAdministrator/flowtracker2-field-data-plugin/branch/master)
 
-An AQTS field data plugin supporting FlowTracker2 measurement files.
+An AQTS field data plugin supporting FlowTracker2 measurement files, for AQTS 2017.4-or-newer systems.
 
 ## Want to install this plugin?
 

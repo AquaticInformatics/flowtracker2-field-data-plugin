@@ -10,6 +10,7 @@ Simply drag and drop your files onto the GUI app, and your file will be converte
 
 ## Requirements
 
+- You will need to agree with the [license terms of this repository](./LICENSE.txt) and with the license terms for software components provided by [SonTek/YSI](../External/SonTek.StandaloneDataParser.License.md).
 - No installer needed. Just run the EXE from wherever.
 - The converter requires the .NET 4.7 runtime to be installed
     - .NET 4.7 is pre-installed on Windows 10 and Windows 2012 Server, and on most Windows 7 systems.
