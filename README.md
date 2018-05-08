@@ -6,6 +6,7 @@ An AQTS field data plugin supporting FlowTracker2 measurement files.
 
 ## Want to install this plugin?
 
+- Use of this plugin implies agreement with the [license terms of this repository](./LICENSE.txt) and with license terms for software components provided by [SonTek/YSI](src/External/SonTek.StandaloneDataParser.License.md).
 - Download the latest release of the plugin [here](../../releases/latest)
 - Install it using the [FieldVisitPluginTool](https://github.com/AquaticInformatics/aquarius-field-data-framework/tree/master/src/FieldDataPluginTool)
 

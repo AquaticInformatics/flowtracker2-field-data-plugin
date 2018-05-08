@@ -13,6 +13,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RepoRoot", "RepoRoot", "{F8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowTracker2Converter", "FlowTracker2Converter\FlowTracker2Converter.csproj", "{647B46C2-0116-4945-859F-DE1D61B46067}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{9BF64FDF-F6BA-4712-8867-AF05DD2108B3}"
+	ProjectSection(SolutionItems) = preProject
+		External\SonTek.StandaloneDataParser.License.md = External\SonTek.StandaloneDataParser.License.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
