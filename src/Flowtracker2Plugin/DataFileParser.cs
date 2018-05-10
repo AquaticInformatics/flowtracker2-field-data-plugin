@@ -338,15 +338,29 @@ namespace FlowTracker2Plugin
 
         private MeasurementConditionData CreateMeasurementCondition(Station station)
         {
-            if (station.StationType == StationType.Ice)
-                return new IceCoveredData
-                {
-                    WaterSurfaceToBottomOfIce = station.WaterSurfaceToBottomOfIce,
-                    WaterSurfaceToBottomOfSlush = station.WaterSurfaceToBottomOfSlush,
-                    IceThickness = station.IceThickness
-                };
+            return station.StationType == StationType.Ice
+                ? CreateIceCoveredData(station)
+                : new OpenWaterData();
+        }
 
-            return new OpenWaterData();
+        private MeasurementConditionData CreateIceCoveredData(Station station)
+        {
+            var iceThickness = double.IsNaN(station.IceThickness)
+                ? 0
+                : station.IceThickness;
+            var waterSurfaceToBottomOfIce = double.IsNaN(station.WaterSurfaceToBottomOfIce)
+                ? iceThickness
+                : station.WaterSurfaceToBottomOfIce;
+            var waterSurfaceToBottomOfSlush = double.IsNaN(station.WaterSurfaceToBottomOfSlush)
+                ? waterSurfaceToBottomOfIce
+                : station.WaterSurfaceToBottomOfSlush;
+
+            return new IceCoveredData
+            {
+                WaterSurfaceToBottomOfIce = waterSurfaceToBottomOfIce,
+                WaterSurfaceToBottomOfSlush = waterSurfaceToBottomOfSlush,
+                IceThickness = iceThickness
+            };
         }
 
         private MeterCalibration CreateMeterCalibration(Station station)
