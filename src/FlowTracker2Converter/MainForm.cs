@@ -11,6 +11,7 @@ using log4net;
 using Microsoft.Win32;
 using SonTek.Framework.Configuration;
 using SonTek.Framework.Data;
+using UnitConversion;
 
 namespace FlowTracker2Converter
 {
@@ -84,13 +85,14 @@ namespace FlowTracker2Converter
             KeepOutputVisible();
         }
 
-        private const string LicenseAgreementKeyPath = @"HKEY_CURRENT_USER\SOFTWARE\Aquatic Informatics\FlowTracker2Converter";
+        private const string ConverterKeyPath = @"HKEY_CURRENT_USER\SOFTWARE\Aquatic Informatics\FlowTracker2Converter";
         private const string LicenseAgreementValueName = "LicenseAgreement";
+        private const string ImperialUnitsValueName = "ImperialUnits";
 
         private bool IsLicenseAccepted()
         {
             return !string.IsNullOrEmpty((string)Registry.GetValue(
-                LicenseAgreementKeyPath,
+                ConverterKeyPath,
                 LicenseAgreementValueName,
                 null));
         }
@@ -98,9 +100,25 @@ namespace FlowTracker2Converter
         private void SetLicenseAcceptanceStatus(bool accepted)
         {
             Registry.SetValue(
-                LicenseAgreementKeyPath,
+                ConverterKeyPath,
                 LicenseAgreementValueName,
                 accepted ? "Accepted" : string.Empty);
+        }
+
+        private bool GetImperialUnitsRegistryValue()
+        {
+            return !string.IsNullOrEmpty((string)Registry.GetValue(
+                ConverterKeyPath,
+                ImperialUnitsValueName,
+                null));
+        }
+
+        private void SetImperialUnits(bool isImperial)
+        {
+            Registry.SetValue(
+                ConverterKeyPath,
+                ImperialUnitsValueName,
+                isImperial ? "Enabled" : string.Empty);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -108,6 +126,7 @@ namespace FlowTracker2Converter
             licenseCheckBox.Checked = IsLicenseAccepted();
 
             UpdateLicensedControls();
+            UpdateUnits();
         }
 
         private void licenseCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -122,11 +141,30 @@ namespace FlowTracker2Converter
             if (licenseCheckBox.Checked)
             {
                 convertButton.Enabled = true;
+                unitComboBox.Enabled = true;
                 return;
             }
 
             Warn("You will need to accept the license terms to use this tool.");
             convertButton.Enabled = false;
+            unitComboBox.Enabled = false;
+        }
+
+        private void UpdateUnits()
+        {
+            var isImperial = GetImperialUnitsRegistryValue();
+
+            unitComboBox.SelectedIndex = isImperial ? 0 : 1;
+        }
+
+        private bool IsImperialUnits()
+        {
+            return unitComboBox.SelectedIndex == 0;
+        }
+
+        private void unitComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SetImperialUnits(IsImperialUnits());
         }
 
         private void viewLicenseButton_Click(object sender, EventArgs e)
@@ -246,6 +284,15 @@ namespace FlowTracker2Converter
         {
             var sb = new StringBuilder();
 
+            var isImperial = IsImperialUnits();
+            var converter = new UnitConverter(isImperial);
+
+            var distanceUnits = GetUnitId(converter, UnitConverter.DistanceUnitGroup);
+            var areaUnits = GetUnitId(converter, UnitConverter.AreaUnitGroup);
+            var velocityUnits = GetUnitId(converter, UnitConverter.VelocityUnitGroup);
+            var dischargeUnits = GetUnitId(converter, UnitConverter.DischargeUnitGroup);
+            var temperatureUnits = GetUnitId(converter, UnitConverter.TemperatureUnitGroup);
+
             sb.AppendLine();
             var utcOffset = dataFile.HandheldInfo.Settings?.GetTimeSpan("LocalTimeOffsetFromUtc") ?? TimeSpan.Zero;
             var startTime = CreateDateTimeOffset(dataFile.Properties.StartTime, utcOffset);
@@ -263,16 +310,16 @@ namespace FlowTracker2Converter
             var startEdge = dataFile.Stations.First().StationType == StationType.LeftBank
                 ? "LEW"
                 : "REW";
-            AppendValue(sb, "Unit_System", "Metric Units");
+            AppendValue(sb, "Unit_System", isImperial? "Imperial Units" : "Metric Units");
             AppendValue(sb, "Discharge_Equation", $"{equation}");
             AppendValue(sb, "Start_Edge", startEdge);
             AppendValue(sb, "#_Stations", $"{dataFile.Stations.Count}");
-            AppendValue(sb, "Total_Width", $"{dataFile.Calculations.Width:F3} m");
-            AppendValue(sb, "Total_Area", $"{dataFile.Calculations.Area:F3} m^2");
-            AppendValue(sb, "Total_Discharge", $"{dataFile.Calculations.Discharge:F4} m^3/s");
-            AppendValue(sb, "Mean_Depth", $"{dataFile.Calculations.Depth:F3} m");
-            AppendValue(sb, "Mean_Velocity", $"{dataFile.Calculations.Velocity.X:F4} m/2");
-            AppendValue(sb, "Mean_Temp", $"{dataFile.Calculations.Temperature:F2} deg C");
+            AppendValue(sb, "Total_Width", $"{converter.ConvertDistance(dataFile.Calculations.Width):F3} {distanceUnits}");
+            AppendValue(sb, "Total_Area", $"{converter.ConvertArea(dataFile.Calculations.Area):F3} {areaUnits}");
+            AppendValue(sb, "Total_Discharge", $"{converter.ConvertDischarge(dataFile.Calculations.Discharge):F4} {dischargeUnits}");
+            AppendValue(sb, "Mean_Depth", $"{converter.ConvertDistance(dataFile.Calculations.Depth):F3} {distanceUnits}");
+            AppendValue(sb, "Mean_Velocity", $"{converter.ConvertVelocity(dataFile.Calculations.Velocity.X):F4} {velocityUnits}");
+            AppendValue(sb, "Mean_Temp", $"{converter.ConvertTemperature(dataFile.Calculations.Temperature):F2} {temperatureUnits}");
 
             sb.AppendLine();
             sb.AppendLine("Discharge_Uncertainty_(ISO)");
@@ -298,24 +345,84 @@ namespace FlowTracker2Converter
             {
                 sb.AppendLine();
                 sb.AppendLine("Supplemental_Data");
-                sb.AppendLine(" Record        Date     Time   Location(m)    Gauge_Height(m) Rated_Flow(m^3/s)  Comments");
+
+                var gaugeHeightTable = new TextTable(7, 12, 9, 14, 19, 18, 10);
+
+                gaugeHeightTable.AddRow(
+                    "Record",
+                    "Date",
+                    "Time",
+                    $"Location({distanceUnits})",
+                    $"Gauge_Height({distanceUnits})",
+                    $"Rated_Flow({dischargeUnits})",
+                    "Comments");
 
                 for(var i = 0; i < gaugeHeightMeasurements.Count; ++i)
                 {
                     var gaugeHeight = gaugeHeightMeasurements[i];
                     var ratedFlow = !double.IsNaN(gaugeHeight.RatedDischarge)
-                        ? $"{gaugeHeight.RatedDischarge:F3}"
+                        ? $"{converter.ConvertDischarge(gaugeHeight.RatedDischarge):F3}"
                         : "()";
                     var dummyLocation = "()";
 
-                    //                    Record                  Date                                 Time              Location(m)               Gauge_Height(m)                   Rated_Flow(m^3/s)  Comments
-                    sb.AppendLine($"     {1+i,2}  {gaugeHeight.Time:yyyy/MM/dd} {gaugeHeight.Time:HH:mm:ss}        {dummyLocation,6}             {gaugeHeight.GaugeHeight,6:F3}          {ratedFlow,8}  ");
+                    gaugeHeightTable.AddRow(
+                        $"{1+i}",
+                        $"{gaugeHeight.Time:yyyy/MM/dd}",
+                        $"{gaugeHeight.Time:HH:mm:ss}",
+                        dummyLocation,
+                        $"{converter.ConvertDistance(gaugeHeight.GaugeHeight):F3}",
+                        ratedFlow);
                 }
+
+                sb.Append(gaugeHeightTable.Format());
             }
 
             sb.AppendLine();
-            sb.AppendLine("St  Clock     Loc  Depth   IceD %Dep  MeasD Npts Spike     Vel   SNR Angle    Verr Bnd    Temp CorrFact   MeanV   Area     Flow   %Q");
-            sb.AppendLine("()     ()     (m)    (m)    (m) (*D)    (m)   ()    ()   (m/s)  (dB) (deg)   (m/s)  ()  (degC)    ()      (m/s)  (m^2)  (m^3/s)  (%)");
+            var stationTable = new TextTable(2, 7, 8, 7, 7, 5, 7, 5, 6, 8, 6, 6, 8, 4, 8, 9, 8, 7, 9, 5);
+
+            stationTable.AddRow(
+                "St",
+                "Clock",
+                "Loc",
+                "Depth",
+                "IceD",
+                "%Dep",
+                "MeasD",
+                "Npts",
+                "Spike",
+                "Vel",
+                "SNR",
+                "Angle",
+                "Verr",
+                "Bnd",
+                "Temp",
+                "CorrFact",
+                "MeanV",
+                "Area",
+                "Flow",
+                "%Q");
+
+            stationTable.AddRow(
+                "()",
+                "()",
+                $"({distanceUnits})",
+                $"({distanceUnits})",
+                $"({distanceUnits})",
+                "(*D)",
+                $"({distanceUnits})",
+                "()",
+                "()",
+                $"({velocityUnits})",
+                "(dB)",
+                "(deg)",
+                $"({velocityUnits})",
+                "()",
+                $"({temperatureUnits})",
+                "()",
+                $"({velocityUnits})",
+                $"({areaUnits})",
+                $"({dischargeUnits})",
+                "(%)");
 
             for (var i = 0; i < dataFile.Stations.Count; ++i)
             {
@@ -335,11 +442,41 @@ namespace FlowTracker2Converter
                 var temp = Sanitize(calc.Temperature);
                 var dummyBand = "0";
 
-                //              St      Clock                             Loc                              Depth      IceD        %Dep                          MeasD             Npts           Spike                                   Vel        SNR       Angle         Verr            Bnd         Temp                           CorrFact                            MeanV            Area                  Flow     %Q
-                sb.AppendLine($"{i,-2}  {time:HH:mm}  {station.Location,6:F2} {station.GetEffectiveDepth(),6:F3}  {ice:F3}  {method,3} {station.GetFinalDepth(),6:F3} {calc.Samples,4} {calc.Spikes,5}  {calc.MeanVelocityInVertical.X,6:F3} {snr,5:F1} {angle,5:F0}  {vErr,6:F4} {dummyBand,3}  {temp,6:F2}    {station.CorrectionFactor,5:F2} {calc.MeanPanelVelocity.X,7:F4} {calc.Area,6:F3} {calc.Discharge,8:F4} {100 * calc.FractionOfTotalDischarge,4:F1}");
+                stationTable.AddRow(
+                    $"{i}",
+                    $"{time:HH:mm}",
+                    $"{converter.ConvertDistance(station.Location):F2}",
+                    $"{converter.ConvertDistance(station.GetEffectiveDepth()):F3}",
+                    $"{converter.ConvertDistance(ice):F3}",
+                    $"{method}",
+                    $"{converter.ConvertDistance(station.GetFinalDepth()):F3}",
+                    $"{calc.Samples}",
+                    $"{calc.Spikes}",
+                    $"{converter.ConvertVelocity(calc.MeanVelocityInVertical.X):F3}",
+                    $"{snr:F1}",
+                    $"{angle:F0}",
+                    $"{vErr:F4}",
+                    $"{dummyBand}",
+                    $"{converter.ConvertTemperature(temp):F2}",
+                    $"{station.CorrectionFactor:F2}",
+                    $"{converter.ConvertVelocity(calc.MeanPanelVelocity.X):F4}",
+                    $"{converter.ConvertArea(calc.Area):F3}",
+                    $"{converter.ConvertDischarge(calc.Discharge):F4}",
+                    $"{100 * calc.FractionOfTotalDischarge:F1}");
             }
 
+            sb.Append(stationTable.Format());
+
             return sb.ToString();
+        }
+
+        private static string GetUnitId(UnitConverter converter, string unitGroup)
+        {
+            var unit = UnitConverter.Units[unitGroup];
+
+            return converter.IsImperial
+                ? unit.ImperialId
+                : unit.MetricId;
         }
 
         private static DateTimeOffset CreateDateTimeOffset(DateTime dateTime, TimeSpan utcOffset)
