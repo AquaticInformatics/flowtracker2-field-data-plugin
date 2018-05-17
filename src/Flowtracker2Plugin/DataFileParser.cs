@@ -200,7 +200,7 @@ namespace FlowTracker2Plugin
             };
 
             var dischargeActivity = dischargeActivityFactory.CreateDischargeActivity(
-                new DateTimeInterval(visit.StartDate, visit.EndDate), DataFile.Calculations.Discharge);
+                new DateTimeInterval(visit.StartDate, visit.EndDate), UnitConverter.ConvertDischarge(DataFile.Calculations.Discharge));
             dischargeActivity.Comments = DataFile.Properties.Comment;
 
             return dischargeActivity;

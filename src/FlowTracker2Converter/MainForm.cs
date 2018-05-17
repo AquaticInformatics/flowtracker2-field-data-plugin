@@ -87,7 +87,7 @@ namespace FlowTracker2Converter
 
         private const string ConverterKeyPath = @"HKEY_CURRENT_USER\SOFTWARE\Aquatic Informatics\FlowTracker2Converter";
         private const string LicenseAgreementValueName = "LicenseAgreement";
-        private const string ImperialUnitsValueName = "ImperialUnits";
+        private const string MetricUnitsValueName = "MetricUnits";
 
         private bool IsLicenseAccepted()
         {
@@ -105,20 +105,20 @@ namespace FlowTracker2Converter
                 accepted ? "Accepted" : string.Empty);
         }
 
-        private bool GetImperialUnitsRegistryValue()
+        private bool GetMetricUnitsRegistryValue()
         {
             return !string.IsNullOrEmpty((string)Registry.GetValue(
                 ConverterKeyPath,
-                ImperialUnitsValueName,
+                MetricUnitsValueName,
                 null));
         }
 
-        private void SetImperialUnits(bool isImperial)
+        private void SetMetricUnits(bool isMetric)
         {
             Registry.SetValue(
                 ConverterKeyPath,
-                ImperialUnitsValueName,
-                isImperial ? "Enabled" : string.Empty);
+                MetricUnitsValueName,
+                isMetric ? "Enabled" : string.Empty);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -152,19 +152,19 @@ namespace FlowTracker2Converter
 
         private void UpdateUnits()
         {
-            var isImperial = GetImperialUnitsRegistryValue();
+            var isMetric = GetMetricUnitsRegistryValue();
 
-            unitComboBox.SelectedIndex = isImperial ? 0 : 1;
+            unitComboBox.SelectedIndex = isMetric ? 1 : 0;
         }
 
-        private bool IsImperialUnits()
+        private bool IsMetricUnits()
         {
-            return unitComboBox.SelectedIndex == 0;
+            return unitComboBox.SelectedIndex == 1;
         }
 
         private void unitComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            SetImperialUnits(IsImperialUnits());
+            SetMetricUnits(IsMetricUnits());
         }
 
         private void viewLicenseButton_Click(object sender, EventArgs e)
@@ -253,7 +253,6 @@ namespace FlowTracker2Converter
             Info($"Successfully converted '{targetPath}'.");
         }
 
-
         private DataFile LoadDataFile(string path)
         {
             try
@@ -284,7 +283,7 @@ namespace FlowTracker2Converter
         {
             var sb = new StringBuilder();
 
-            var isImperial = IsImperialUnits();
+            var isImperial = !IsMetricUnits();
             var converter = new UnitConverter(isImperial);
 
             var distanceUnits = GetUnitId(converter, UnitConverter.DistanceUnitGroup);
