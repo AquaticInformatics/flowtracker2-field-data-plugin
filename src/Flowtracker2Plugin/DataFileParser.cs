@@ -16,6 +16,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using SonTek.Framework.Configuration;
 using SonTek.Framework.Data;
 using SonTek.Globals.Common;
+using UnitConversion;
 
 namespace FlowTracker2Plugin
 {
@@ -37,6 +38,7 @@ namespace FlowTracker2Plugin
 
         private DataFile DataFile { get; set; }
         private UnitSystem UnitSystem { get; set; }
+        private UnitConverter UnitConverter { get; set; }
 
         public ParseFileResult Parse(Stream stream, LocationInfo locationInfo)
         {
@@ -152,14 +154,31 @@ namespace FlowTracker2Plugin
 
         private UnitSystem CreateUnitSystem()
         {
-            // FlowTracker2 measurements are always persisted in metric.
+            UnitConverter = new UnitConverter(!IsMetric());
+
             return new UnitSystem
             {
-                DistanceUnitId = "m",
-                AreaUnitId = "m^2",
-                VelocityUnitId = "m/s",
-                DischargeUnitId = "m^3/s",
+                DistanceUnitId = GetUnitId(UnitConverter.DistanceUnitGroup),
+                AreaUnitId = GetUnitId(UnitConverter.AreaUnitGroup),
+                VelocityUnitId = GetUnitId(UnitConverter.VelocityUnitGroup),
+                DischargeUnitId = GetUnitId(UnitConverter.DischargeUnitGroup),
             };
+        }
+
+        private string GetUnitId(string unitGroup)
+        {
+            var unit = UnitConverter.Units[unitGroup];
+
+            return UnitConverter.IsImperial
+                ? unit.ImperialId
+                : unit.MetricId;
+        }
+
+        private static bool IsMetric()
+        {
+            return File.Exists(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                @"Aquatic Informatics\AQUARIUS Server\FieldDataPlugins\FlowTracker2\CreateMetricMeasurements.txt"));
         }
 
         private FieldVisitInfo CreateVisit(LocationInfo locationInfo)
@@ -205,13 +224,15 @@ namespace FlowTracker2Plugin
         private void AddTemperatureReadings(FieldVisitInfo visit)
         {
             const string waterTemperatureParameterId = "TW";
-            const string degreesCelciusUnitId = "degC";
+
+            var temperatureUnitId = GetUnitId(UnitConverter.TemperatureUnitGroup);
+            var temperatureValue = UnitConverter.ConvertTemperature(DataFile.Calculations.Temperature);
 
             var visitDuration = visit.EndDate - visit.StartDate;
             var midVisitTime = visit.StartDate + TimeSpan.FromTicks(visitDuration.Ticks / 2);
 
             var temperatureReading = new Reading(waterTemperatureParameterId,
-                    new Measurement(DataFile.Calculations.Temperature, degreesCelciusUnitId))
+                    new Measurement(temperatureValue, temperatureUnitId))
             {
                 MeasurementDevice = new MeasurementDevice("SonTek", "ProbeModel", "ProbeSerial"),
                 DateTimeOffset = midVisitTime
@@ -226,11 +247,12 @@ namespace FlowTracker2Plugin
 
             var manualGauging =
                 manualGaugingDischargeSectionFactory.CreateManualGaugingDischargeSection(
-                    dischargeActivity.MeasurementPeriod, dischargeActivity.Discharge.Value);
+                    dischargeActivity.MeasurementPeriod,
+                    UnitConverter.ConvertDischarge(dischargeActivity.Discharge.Value));
 
-            manualGauging.AreaValue = DataFile.Calculations.Area;
-            manualGauging.WidthValue = DataFile.Calculations.Width;
-            manualGauging.VelocityAverageValue = DataFile.Calculations.Velocity.X;
+            manualGauging.AreaValue = UnitConverter.ConvertArea(DataFile.Calculations.Area);
+            manualGauging.WidthValue = UnitConverter.ConvertDistance(DataFile.Calculations.Width);
+            manualGauging.VelocityAverageValue = UnitConverter.ConvertVelocity(DataFile.Calculations.Velocity.X);
             manualGauging.StartPoint = DataFile.Stations.First().StationType == StationType.RightBank
                 ? StartPointType.RightEdgeOfWater
                 : StartPointType.LeftEdgeOfWater;
@@ -253,7 +275,7 @@ namespace FlowTracker2Plugin
             {
                 dischargeActivity.GageHeightMeasurements.Add(
                     new GageHeightMeasurement(
-                        new Measurement(gaugeHeightMeasurement.GaugeHeight, UnitSystem.DistanceUnitId),
+                        new Measurement(UnitConverter.ConvertDistance(gaugeHeightMeasurement.GaugeHeight), UnitSystem.DistanceUnitId),
                         gaugeHeightMeasurement.Time));
             }
         }
@@ -287,25 +309,25 @@ namespace FlowTracker2Plugin
                 TaglinePosition = station.Location,
                 Comments = station.Comment,
                 MeasurementTime = station.CreationTime,
-                EffectiveDepth = station.GetEffectiveDepth(),
-                SoundedDepth = station.GetFinalDepth(),
+                EffectiveDepth = UnitConverter.ConvertDistance(station.GetEffectiveDepth()),
+                SoundedDepth = UnitConverter.ConvertDistance(station.GetFinalDepth()),
                 MeasurementConditionData = CreateMeasurementCondition(station),
                 VelocityObservation = new VelocityObservation
                 {
                     VelocityObservationMethod = GetPointVelocityObservationType(station.VelocityMethod),
                     MeterCalibration = CreateMeterCalibration(station),
-                    MeanVelocity = station.Calculations.MeanVelocityInVertical.X,
+                    MeanVelocity = UnitConverter.ConvertVelocity(station.Calculations.MeanVelocityInVertical.X),
                     DeploymentMethod = DeploymentMethodType.Unspecified,
                 },
                 FlowDirection = FlowDirectionType.Normal,
                 VerticalType = verticalType,
                 Segment = new Segment
                 {
-                    Width = station.Calculations.Width,
-                    Area = station.Calculations.Area,
-                    Discharge = station.Calculations.Discharge,
+                    Width = UnitConverter.ConvertDistance(station.Calculations.Width),
+                    Area = UnitConverter.ConvertArea(station.Calculations.Area),
+                    Discharge = UnitConverter.ConvertDischarge(station.Calculations.Discharge),
                     TotalDischargePortion = 100 * station.Calculations.FractionOfTotalDischarge,
-                    Velocity = station.Calculations.MeanVelocityInVertical.X
+                    Velocity = UnitConverter.ConvertVelocity(station.Calculations.MeanVelocityInVertical.X)
                 }
             };
 
@@ -313,8 +335,8 @@ namespace FlowTracker2Plugin
             {
                 vertical.VelocityObservation.Observations.Add(new VelocityDepthObservation
                 {
-                    Depth = pointMeasurement.FractionalDepth * vertical.EffectiveDepth,
-                    Velocity = pointMeasurement.Calculations.Velocity.X,
+                    Depth = pointMeasurement.FractionalDepth * vertical.EffectiveDepth, // already unit-converted
+                    Velocity = UnitConverter.ConvertVelocity(pointMeasurement.Calculations.Velocity.X),
                     ObservationInterval = (pointMeasurement.EndTime - pointMeasurement.StartTime).TotalSeconds,
                     RevolutionCount = 0
                 });
@@ -357,9 +379,9 @@ namespace FlowTracker2Plugin
 
             return new IceCoveredData
             {
-                WaterSurfaceToBottomOfIce = waterSurfaceToBottomOfIce,
-                WaterSurfaceToBottomOfSlush = waterSurfaceToBottomOfSlush,
-                IceThickness = iceThickness
+                WaterSurfaceToBottomOfIce = UnitConverter.ConvertDistance(waterSurfaceToBottomOfIce),
+                WaterSurfaceToBottomOfSlush = UnitConverter.ConvertDistance(waterSurfaceToBottomOfSlush),
+                IceThickness = UnitConverter.ConvertDistance(iceThickness)
             };
         }
 
