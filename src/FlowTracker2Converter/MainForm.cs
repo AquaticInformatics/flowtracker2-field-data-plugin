@@ -363,11 +363,12 @@ namespace FlowTracker2Converter
                         ? $"{converter.ConvertDischarge(gaugeHeight.RatedDischarge):F3}"
                         : "()";
                     var dummyLocation = "()";
+                    var gaugeHeightTime = CreateDateTimeOffset(gaugeHeight.Time, utcOffset);
 
                     gaugeHeightTable.AddRow(
                         $"{1+i}",
-                        $"{gaugeHeight.Time:yyyy/MM/dd}",
-                        $"{gaugeHeight.Time:HH:mm:ss}",
+                        $"{gaugeHeightTime:yyyy/MM/dd}",
+                        $"{gaugeHeightTime:HH:mm:ss}",
                         dummyLocation,
                         $"{converter.ConvertDistance(gaugeHeight.GaugeHeight):F3}",
                         ratedFlow);
@@ -480,6 +481,10 @@ namespace FlowTracker2Converter
 
         private static DateTimeOffset CreateDateTimeOffset(DateTime dateTime, TimeSpan utcOffset)
         {
+            if (dateTime.Kind == DateTimeKind.Utc)
+                return new DateTimeOffset(dateTime) + utcOffset;
+
+            // If not UTC, then assume the location local time
             return new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Unspecified), utcOffset);
         }
 
