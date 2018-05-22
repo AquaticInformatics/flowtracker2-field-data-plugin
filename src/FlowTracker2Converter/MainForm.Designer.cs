@@ -37,7 +37,6 @@
             this.clearButton = new System.Windows.Forms.Button();
             this.viewLicenseButton = new System.Windows.Forms.Button();
             this.licenseCheckBox = new System.Windows.Forms.CheckBox();
-            this.unitComboBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxAqTs)).BeginInit();
             this.SuspendLayout();
             // 
@@ -129,26 +128,12 @@
             this.licenseCheckBox.UseVisualStyleBackColor = true;
             this.licenseCheckBox.CheckedChanged += new System.EventHandler(this.licenseCheckBox_CheckedChanged);
             // 
-            // unitComboBox
-            // 
-            this.unitComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.unitComboBox.FormattingEnabled = true;
-            this.unitComboBox.Items.AddRange(new object[] {
-            "Imperial Units",
-            "Metric Units"});
-            this.unitComboBox.Location = new System.Drawing.Point(111, 28);
-            this.unitComboBox.Name = "unitComboBox";
-            this.unitComboBox.Size = new System.Drawing.Size(133, 21);
-            this.unitComboBox.TabIndex = 35;
-            this.unitComboBox.SelectedIndexChanged += new System.EventHandler(this.unitComboBox_SelectedIndexChanged);
-            // 
             // MainForm
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(444, 220);
-            this.Controls.Add(this.unitComboBox);
             this.Controls.Add(this.licenseCheckBox);
             this.Controls.Add(this.viewLicenseButton);
             this.Controls.Add(this.clearButton);
@@ -180,7 +165,6 @@
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Button viewLicenseButton;
         private System.Windows.Forms.CheckBox licenseCheckBox;
-        private System.Windows.Forms.ComboBox unitComboBox;
     }
 }
 
