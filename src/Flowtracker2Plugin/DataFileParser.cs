@@ -174,11 +174,13 @@ namespace FlowTracker2Plugin
                 : unit.MetricId;
         }
 
-        private static bool IsMetric()
+        private bool IsMetric()
         {
-            return File.Exists(Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                @"Aquatic Informatics\AQUARIUS Server\FieldDataPlugins\FlowTracker2\CreateMetricMeasurements.txt"));
+            const string metricUnits = "Metric";
+
+            return !DataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
+                       .Equals(metricUnits, StringComparison.InvariantCultureIgnoreCase)
+                   ?? true;
         }
 
         private FieldVisitInfo CreateVisit(LocationInfo locationInfo)

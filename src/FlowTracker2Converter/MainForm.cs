@@ -87,7 +87,6 @@ namespace FlowTracker2Converter
 
         private const string ConverterKeyPath = @"HKEY_CURRENT_USER\SOFTWARE\Aquatic Informatics\FlowTracker2Converter";
         private const string LicenseAgreementValueName = "LicenseAgreement";
-        private const string MetricUnitsValueName = "MetricUnits";
 
         private bool IsLicenseAccepted()
         {
@@ -105,28 +104,11 @@ namespace FlowTracker2Converter
                 accepted ? "Accepted" : string.Empty);
         }
 
-        private bool GetMetricUnitsRegistryValue()
-        {
-            return !string.IsNullOrEmpty((string)Registry.GetValue(
-                ConverterKeyPath,
-                MetricUnitsValueName,
-                null));
-        }
-
-        private void SetMetricUnits(bool isMetric)
-        {
-            Registry.SetValue(
-                ConverterKeyPath,
-                MetricUnitsValueName,
-                isMetric ? "Enabled" : string.Empty);
-        }
-
         private void MainForm_Load(object sender, EventArgs e)
         {
             licenseCheckBox.Checked = IsLicenseAccepted();
 
             UpdateLicensedControls();
-            UpdateUnits();
         }
 
         private void licenseCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -141,30 +123,11 @@ namespace FlowTracker2Converter
             if (licenseCheckBox.Checked)
             {
                 convertButton.Enabled = true;
-                unitComboBox.Enabled = true;
                 return;
             }
 
             Warn("You will need to accept the license terms to use this tool.");
             convertButton.Enabled = false;
-            unitComboBox.Enabled = false;
-        }
-
-        private void UpdateUnits()
-        {
-            var isMetric = GetMetricUnitsRegistryValue();
-
-            unitComboBox.SelectedIndex = isMetric ? 1 : 0;
-        }
-
-        private bool IsMetricUnits()
-        {
-            return unitComboBox.SelectedIndex == 1;
-        }
-
-        private void unitComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            SetMetricUnits(IsMetricUnits());
         }
 
         private void viewLicenseButton_Click(object sender, EventArgs e)
@@ -279,11 +242,20 @@ namespace FlowTracker2Converter
             return result == DialogResult.Yes;
         }
 
+        private bool IsMetric(DataFile dataFile)
+        {
+            const string metricUnits = "Metric";
+
+            return !dataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
+                       .Equals(metricUnits, StringComparison.InvariantCultureIgnoreCase)
+                   ?? true;
+        }
+
         private string ConvertToDis(DataFile dataFile, string sourcePath)
         {
             var sb = new StringBuilder();
 
-            var isImperial = !IsMetricUnits();
+            var isImperial = !IsMetric(dataFile);
             var converter = new UnitConverter(isImperial);
 
             var distanceUnits = GetUnitId(converter, UnitConverter.DistanceUnitGroup);
@@ -309,7 +281,7 @@ namespace FlowTracker2Converter
             var startEdge = dataFile.Stations.First().StationType == StationType.LeftBank
                 ? "LEW"
                 : "REW";
-            AppendValue(sb, "Unit_System", isImperial? "Imperial Units" : "Metric Units");
+            AppendValue(sb, "Unit_System", isImperial? "English Units" : "Metric Units");
             AppendValue(sb, "Discharge_Equation", $"{equation}");
             AppendValue(sb, "Start_Edge", startEdge);
             AppendValue(sb, "#_Stations", $"{dataFile.Stations.Count}");
