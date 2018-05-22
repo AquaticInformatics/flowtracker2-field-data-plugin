@@ -246,7 +246,7 @@ namespace FlowTracker2Converter
         {
             const string metricUnits = "Metric";
 
-            return !dataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
+            return dataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
                        .Equals(metricUnits, StringComparison.InvariantCultureIgnoreCase)
                    ?? true;
         }

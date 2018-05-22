@@ -178,7 +178,7 @@ namespace FlowTracker2Plugin
         {
             const string metricUnits = "Metric";
 
-            return !DataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
+            return DataFile.HandheldInfo.Settings?.GetString("Units", metricUnits)
                        .Equals(metricUnits, StringComparison.InvariantCultureIgnoreCase)
                    ?? true;
         }
