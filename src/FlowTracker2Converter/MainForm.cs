@@ -25,6 +25,8 @@ namespace FlowTracker2Converter
 
             // ReSharper disable once VirtualMemberCallInConstructor
             Text = $@"FlowTracker2Converter v{GetExecutingFileVersion()}";
+
+            Info($"Doug was here");
         }
 
         private static string GetExecutingFileVersion()
