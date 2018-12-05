@@ -250,7 +250,7 @@ namespace FlowTracker2Plugin
             var manualGauging =
                 manualGaugingDischargeSectionFactory.CreateManualGaugingDischargeSection(
                     dischargeActivity.MeasurementPeriod,
-                    UnitConverter.ConvertDischarge(dischargeActivity.Discharge.Value));
+                    dischargeActivity.Discharge.Value);
 
             manualGauging.AreaValue = UnitConverter.ConvertArea(DataFile.Calculations.Area);
             manualGauging.WidthValue = UnitConverter.ConvertDistance(DataFile.Calculations.Width);
