@@ -269,7 +269,7 @@ namespace FlowTracker2Converter
             var startTime = CreateDateTimeOffset(dataFile.Properties.StartTime, utcOffset);
             AppendValue(sb, "File_Name", Path.GetFileName(sourcePath));
             AppendValue(sb, "Start_Date_and_Time", $"{startTime:yyyy/MM/dd HH:mm:ss}");
-            AppendValue(sb, "Site_Name", dataFile.Properties.SiteNumber);
+            AppendValue(sb, "Site_Name", string.IsNullOrEmpty(dataFile.Properties.SiteNumber) ? "Unknown" : dataFile.Properties.SiteNumber);
             AppendValue(sb, "Operator(s)", dataFile.Properties.Operator);
             AppendValue(sb, "Sensor_Type", $"{dataFile.Properties.CalculationsEngine}");
             AppendValue(sb, "Serial_#", $"{dataFile.HandheldInfo.SerialNumber}/{dataFile.HandheldInfo.CpuSerialNumber}");

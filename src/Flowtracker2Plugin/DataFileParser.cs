@@ -49,6 +49,9 @@ namespace FlowTracker2Plugin
 
             if (locationInfo == null)
             {
+                if (string.IsNullOrEmpty(DataFile.Properties.SiteNumber))
+                    return ParseFileResult.SuccessfullyParsedButDataInvalid($"No {nameof(DataFile.Properties.SiteNumber)} property is set, so no AQUARIUS location can be inferred. Try uploading the file directly to a location.");
+
                 locationInfo = _resultsAppender.GetLocationByIdentifier(DataFile.Properties.SiteNumber);
             }
 
@@ -130,11 +133,12 @@ namespace FlowTracker2Plugin
 
                 var manualGauging = CreateManualGauging(dischargeActivity);
 
-                ValidateStartAndEndStations(out var startStationType, out var endStationType);
+                var startStation = DataFile.Stations.First();
+                var endStation = DataFile.Stations.Last();
 
                 foreach (var station in DataFile.Stations)
                 {
-                    manualGauging.Verticals.Add(CreateVertical(station, startStationType, endStationType));
+                    manualGauging.Verticals.Add(CreateVertical(station, startStation, endStation));
                 }
 
                 _resultsAppender.AddDischargeActivity(visit, dischargeActivity);
@@ -208,15 +212,6 @@ namespace FlowTracker2Plugin
             return dischargeActivity;
         }
 
-        private void ValidateStartAndEndStations(out StationType startStationType, out StationType endStationType)
-        {
-            startStationType = DataFile.Stations.First().StationType;
-            endStationType = DataFile.Stations.Last().StationType;
-
-            if (!ValidBankTypes.Contains(startStationType) || !ValidBankTypes.Contains(endStationType) || startStationType == endStationType)
-                throw new Exception($"Measurements must start and end at a bank. StartStationType={startStationType} EndStationType={endStationType}");
-        }
-
         private static readonly HashSet<StationType> ValidBankTypes = new HashSet<StationType>
         {
             StationType.RightBank,
@@ -250,7 +245,7 @@ namespace FlowTracker2Plugin
             var manualGauging =
                 manualGaugingDischargeSectionFactory.CreateManualGaugingDischargeSection(
                     dischargeActivity.MeasurementPeriod,
-                    UnitConverter.ConvertDischarge(dischargeActivity.Discharge.Value));
+                    dischargeActivity.Discharge.Value);
 
             manualGauging.AreaValue = UnitConverter.ConvertArea(DataFile.Calculations.Area);
             manualGauging.WidthValue = UnitConverter.ConvertDistance(DataFile.Calculations.Width);
@@ -298,11 +293,11 @@ namespace FlowTracker2Plugin
             throw new ArgumentException($"DischargeEquation='{dischargeEquation}' is not supported");
         }
 
-        private Vertical CreateVertical(Station station, StationType startStationType, StationType endStationType)
+        private Vertical CreateVertical(Station station, Station startStation, Station endStation)
         {
-            var verticalType = station.StationType == startStationType
+            var verticalType = station == startStation && ValidBankTypes.Contains(station.StationType)
                 ? VerticalType.StartEdgeNoWaterBefore
-                : station.StationType == endStationType
+                : station == endStation && ValidBankTypes.Contains(station.StationType)
                     ? VerticalType.EndEdgeNoWaterAfter
                     : VerticalType.MidRiver; // IslandEdge, OpenWater, and Ice all map to MidRiver
 
