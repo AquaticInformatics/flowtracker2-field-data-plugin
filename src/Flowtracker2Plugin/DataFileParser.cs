@@ -130,11 +130,12 @@ namespace FlowTracker2Plugin
 
                 var manualGauging = CreateManualGauging(dischargeActivity);
 
-                ValidateStartAndEndStations(out var startStationType, out var endStationType);
+                var startStation = DataFile.Stations.First();
+                var endStation = DataFile.Stations.Last();
 
                 foreach (var station in DataFile.Stations)
                 {
-                    manualGauging.Verticals.Add(CreateVertical(station, startStationType, endStationType));
+                    manualGauging.Verticals.Add(CreateVertical(station, startStation, endStation));
                 }
 
                 _resultsAppender.AddDischargeActivity(visit, dischargeActivity);
@@ -206,15 +207,6 @@ namespace FlowTracker2Plugin
             dischargeActivity.Comments = DataFile.Properties.Comment;
 
             return dischargeActivity;
-        }
-
-        private void ValidateStartAndEndStations(out StationType startStationType, out StationType endStationType)
-        {
-            startStationType = DataFile.Stations.First().StationType;
-            endStationType = DataFile.Stations.Last().StationType;
-
-            if (!ValidBankTypes.Contains(startStationType) || !ValidBankTypes.Contains(endStationType) || startStationType == endStationType)
-                throw new Exception($"Measurements must start and end at a bank. StartStationType={startStationType} EndStationType={endStationType}");
         }
 
         private static readonly HashSet<StationType> ValidBankTypes = new HashSet<StationType>
@@ -298,11 +290,11 @@ namespace FlowTracker2Plugin
             throw new ArgumentException($"DischargeEquation='{dischargeEquation}' is not supported");
         }
 
-        private Vertical CreateVertical(Station station, StationType startStationType, StationType endStationType)
+        private Vertical CreateVertical(Station station, Station startStation, Station endStation)
         {
-            var verticalType = station.StationType == startStationType
+            var verticalType = station == startStation && ValidBankTypes.Contains(station.StationType)
                 ? VerticalType.StartEdgeNoWaterBefore
-                : station.StationType == endStationType
+                : station == endStation && ValidBankTypes.Contains(station.StationType)
                     ? VerticalType.EndEdgeNoWaterAfter
                     : VerticalType.MidRiver; // IslandEdge, OpenWater, and Ice all map to MidRiver
 
