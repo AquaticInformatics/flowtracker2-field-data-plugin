@@ -49,6 +49,9 @@ namespace FlowTracker2Plugin
 
             if (locationInfo == null)
             {
+                if (string.IsNullOrEmpty(DataFile.Properties.SiteNumber))
+                    return ParseFileResult.SuccessfullyParsedButDataInvalid($"No {nameof(DataFile.Properties.SiteNumber)} property is set, so no AQUARIUS location can be inferred. Try uploading the file directly to a location.");
+
                 locationInfo = _resultsAppender.GetLocationByIdentifier(DataFile.Properties.SiteNumber);
             }
 
