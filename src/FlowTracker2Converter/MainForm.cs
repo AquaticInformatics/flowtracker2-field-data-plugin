@@ -266,7 +266,7 @@ namespace FlowTracker2Converter
 
             sb.AppendLine();
             var utcOffset = dataFile.HandheldInfo.Settings?.GetTimeSpan("LocalTimeOffsetFromUtc") ?? TimeSpan.Zero;
-            var startTime = CreateDateTimeOffset(dataFile.Properties.StartTime, utcOffset);
+            var startTime = CreateDateTimeOffset(dataFile.Stations.First().CreationTime, utcOffset);
             AppendValue(sb, "File_Name", Path.GetFileName(sourcePath));
             AppendValue(sb, "Start_Date_and_Time", $"{startTime:yyyy/MM/dd HH:mm:ss}");
             AppendValue(sb, "Site_Name", string.IsNullOrEmpty(dataFile.Properties.SiteNumber) ? "Unknown" : dataFile.Properties.SiteNumber);

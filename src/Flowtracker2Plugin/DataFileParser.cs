@@ -189,7 +189,10 @@ namespace FlowTracker2Plugin
 
         private FieldVisitInfo CreateVisit(LocationInfo locationInfo)
         {
-            var fieldVisitPeriod = new DateTimeInterval(DataFile.Properties.StartTime, DataFile.Properties.EndTime);
+            var startTime = DataFile.Stations.First().CreationTime;
+            var endTime = DataFile.Stations.Last().CreationTime;
+
+            var fieldVisitPeriod = new DateTimeInterval(startTime, endTime);
             var visitDetails = new FieldVisitDetails(fieldVisitPeriod)
             {
                 Party = DataFile.Properties.Operator
