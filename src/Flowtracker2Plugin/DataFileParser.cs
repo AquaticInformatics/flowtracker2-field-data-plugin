@@ -312,7 +312,7 @@ namespace FlowTracker2Plugin
 
             var vertical = new Vertical
             {
-                TaglinePosition = station.Location,
+                TaglinePosition = UnitConverter.ConvertDistance(station.Location),
                 Comments = station.Comment,
                 MeasurementTime = station.CreationTime,
                 EffectiveDepth = UnitConverter.ConvertDistance(station.GetEffectiveDepth()),
