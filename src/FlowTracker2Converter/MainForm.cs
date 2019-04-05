@@ -350,7 +350,7 @@ namespace FlowTracker2Converter
             }
 
             sb.AppendLine();
-            var stationTable = new TextTable(2, 7, 8, 7, 7, 5, 7, 5, 6, 8, 6, 6, 8, 4, 8, 9, 8, 7, 9, 5);
+            var stationTable = new TextTable(-2, 7, 8, 7, 7, 5, 7, 5, 6, 8, 6, 6, 8, 4, 8, 9, 8, 7, 9, 5);
 
             stationTable.AddRow(
                 "St",
@@ -415,7 +415,7 @@ namespace FlowTracker2Converter
                 var dummyBand = "0";
 
                 stationTable.AddRow(
-                    $"{i}",
+                    $"{i:D2}",
                     $"{time:HH:mm}",
                     $"{converter.ConvertDistance(station.Location):F2}",
                     $"{converter.ConvertDistance(station.GetEffectiveDepth()):F3}",

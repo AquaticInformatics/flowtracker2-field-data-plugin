@@ -24,7 +24,14 @@ namespace FlowTracker2Converter
                 var width = Widths[i];
                 var value = values[i];
 
-                Builder.AppendFormat(value.PadLeft(width));
+                if (width < 0)
+                {
+                    Builder.AppendFormat(value.PadRight(-width));
+                }
+                else
+                {
+                    Builder.AppendFormat(value.PadLeft(width));
+                }
             }
 
             Builder.AppendLine();
