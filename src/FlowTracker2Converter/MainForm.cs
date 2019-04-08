@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -414,14 +415,19 @@ namespace FlowTracker2Converter
                 var temp = Sanitize(calc.Temperature);
                 var dummyBand = "0";
 
+                var effectiveDepth = converter.ConvertDistance(station.GetEffectiveDepth());
+                var fractionalDepth = double.TryParse(method, NumberStyles.Any, CultureInfo.InvariantCulture, out var fraction)
+                        ? fraction
+                        : 0;
+
                 stationTable.AddRow(
                     $"{i:D2}",
                     $"{time:HH:mm}",
                     $"{converter.ConvertDistance(station.Location):F2}",
-                    $"{converter.ConvertDistance(station.GetEffectiveDepth()):F3}",
+                    $"{effectiveDepth:F3}",
                     $"{converter.ConvertDistance(ice):F3}",
                     $"{method}",
-                    $"{converter.ConvertDistance(station.GetFinalDepth()):F3}",
+                    $"{effectiveDepth - fractionalDepth*effectiveDepth:F3}",
                     $"{calc.Samples}",
                     $"{calc.Spikes}",
                     $"{converter.ConvertVelocity(calc.MeanVelocityInVertical.X):F3}",
