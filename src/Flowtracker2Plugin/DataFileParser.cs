@@ -217,6 +217,8 @@ namespace FlowTracker2Plugin
             var dischargeActivity = dischargeActivityFactory.CreateDischargeActivity(
                 new DateTimeInterval(visit.StartDate, visit.EndDate), UnitConverter.ConvertDischarge(DataFile.Calculations.Discharge));
             dischargeActivity.Comments = DataFile.Properties.Comment;
+            dischargeActivity.ActiveUncertaintyType = UncertaintyType.Quantitative;
+            dischargeActivity.QuantitativeUncertainty = DataFile.Calculations.UncertaintyIso.Overall * 100;
 
             return dischargeActivity;
         }

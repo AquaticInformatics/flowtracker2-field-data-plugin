@@ -10,6 +10,15 @@ An AQTS field data plugin supporting FlowTracker2 measurement files, for AQTS 20
 - Download the latest release of the plugin [here](../../releases/latest)
 - Install it using the [FieldVisitPluginTool](https://github.com/AquaticInformatics/aquarius-field-data-framework/tree/master/src/FieldDataPluginTool)
 
+## Plugin Compatibility Matrix
+
+It is recommended that you use the most recent version of the plugin which matches your AQTS server version.
+
+| AQTS Version | Latest compatible plugin Version |
+| --- | --- |
+| AQTS 2019.2 | [v19.2.1](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.1/FlowTracker2Plugin.plugin) - Adds discharge uncertainty |
+| 2017.4 - 2019.1 | [v17.4.44](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v17.4.44/FlowTracker2Plugin.plugin) |
+
 ## Requirements for building the plugin from source
 
 - Requires Visual Studio 2017 (Community Edition is fine)
