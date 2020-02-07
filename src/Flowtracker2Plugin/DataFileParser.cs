@@ -141,6 +141,8 @@ namespace FlowTracker2Plugin
                     manualGauging.Verticals.Add(CreateVertical(station, startStation, endStation));
                 }
 
+                AdjustUnknownTotalDischargePortion(manualGauging);
+
                 _resultsAppender.AddDischargeActivity(visit, dischargeActivity);
 
                 AddTemperatureReadings(visit);
@@ -364,6 +366,19 @@ namespace FlowTracker2Plugin
             }
 
             return vertical;
+        }
+
+        private void AdjustUnknownTotalDischargePortion(ManualGaugingDischargeSection manualGauging)
+        {
+            var totalDischarge = manualGauging.Discharge.Value;
+
+            foreach (var vertical in manualGauging.Verticals)
+            {
+                if (!double.IsNaN(vertical.Segment.TotalDischargePortion) || double.IsNaN(vertical.Segment.Discharge))
+                    continue;
+
+                vertical.Segment.TotalDischargePortion = 100 * vertical.Segment.Discharge / totalDischarge;
+            }
         }
 
         private MeasurementConditionData CreateMeasurementCondition(Station station)
