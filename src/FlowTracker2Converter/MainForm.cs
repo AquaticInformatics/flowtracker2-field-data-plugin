@@ -265,6 +265,8 @@ namespace FlowTracker2Converter
             var dischargeUnits = GetUnitId(converter, UnitConverter.DischargeUnitGroup);
             var temperatureUnits = GetUnitId(converter, UnitConverter.TemperatureUnitGroup);
 
+            var totalDischarge = converter.ConvertDischarge(dataFile.Calculations.Discharge);
+
             sb.AppendLine();
             var utcOffset = dataFile.HandheldInfo.Settings?.GetTimeSpan("LocalTimeOffsetFromUtc") ?? TimeSpan.Zero;
             var startTime = CreateDateTimeOffset(dataFile.Stations.First().CreationTime, utcOffset);
@@ -288,7 +290,7 @@ namespace FlowTracker2Converter
             AppendValue(sb, "#_Stations", $"{dataFile.Stations.Count}");
             AppendValue(sb, "Total_Width", $"{converter.ConvertDistance(dataFile.Calculations.Width):F3} {distanceUnits}");
             AppendValue(sb, "Total_Area", $"{converter.ConvertArea(dataFile.Calculations.Area):F3} {areaUnits}");
-            AppendValue(sb, "Total_Discharge", $"{converter.ConvertDischarge(dataFile.Calculations.Discharge):F4} {dischargeUnits}");
+            AppendValue(sb, "Total_Discharge", $"{totalDischarge:F4} {dischargeUnits}");
             AppendValue(sb, "Mean_Depth", $"{converter.ConvertDistance(dataFile.Calculations.Depth):F3} {distanceUnits}");
             AppendValue(sb, "Mean_Velocity", $"{converter.ConvertVelocity(dataFile.Calculations.Velocity.X):F4} {velocityUnits}");
             AppendValue(sb, "Mean_Temp", $"{converter.ConvertTemperature(dataFile.Calculations.Temperature):F2} {temperatureUnits}");
@@ -420,6 +422,11 @@ namespace FlowTracker2Converter
                         ? fraction
                         : 0;
 
+                var segmentDischarge = converter.ConvertDischarge(calc.Discharge);
+                var totalDischargePortion = double.IsNaN(calc.FractionOfTotalDischarge)
+                    ? 100 * segmentDischarge / totalDischarge
+                    : 100 * calc.FractionOfTotalDischarge;
+
                 stationTable.AddRow(
                     $"{i:D2}",
                     $"{time:HH:mm}",
@@ -439,8 +446,8 @@ namespace FlowTracker2Converter
                     $"{station.CorrectionFactor:F2}",
                     $"{converter.ConvertVelocity(calc.MeanPanelVelocity.X):F4}",
                     $"{converter.ConvertArea(calc.Area):F3}",
-                    $"{converter.ConvertDischarge(calc.Discharge):F4}",
-                    $"{100 * calc.FractionOfTotalDischarge:F1}");
+                    $"{segmentDischarge:F4}",
+                    $"{totalDischargePortion:F1}");
             }
 
             sb.Append(stationTable.Format());
