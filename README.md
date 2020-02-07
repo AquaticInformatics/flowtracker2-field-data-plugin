@@ -16,7 +16,7 @@ It is recommended that you use the most recent version of the plugin which match
 
 | AQTS Version | Latest compatible plugin Version |
 | --- | --- |
-| AQTS 2019.2+ | [v19.2.4](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.4/FlowTracker2Plugin.plugin) - Adds discharge uncertainty |
+| AQTS 2019.2+ | [v19.2.7](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.7/FlowTracker2Plugin.plugin) - Adds discharge uncertainty |
 | 2017.4 - 2019.1 | [v17.4.44](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v17.4.44/FlowTracker2Plugin.plugin) |
 
 ## Requirements for building the plugin from source
