@@ -138,7 +138,7 @@ namespace FlowTracker2Plugin
 
                 foreach (var station in DataFile.Stations)
                 {
-                    manualGauging.Verticals.Add(CreateVertical(station, startStation, endStation));
+                    manualGauging.Verticals.Add(CreateVertical(manualGauging.Verticals.Count, station, startStation, endStation));
                 }
 
                 AdjustUnknownTotalDischargePortion(manualGauging);
@@ -306,7 +306,7 @@ namespace FlowTracker2Plugin
             throw new ArgumentException($"DischargeEquation='{dischargeEquation}' is not supported");
         }
 
-        private Vertical CreateVertical(Station station, Station startStation, Station endStation)
+        private Vertical CreateVertical(int sequenceNumber, Station station, Station startStation, Station endStation)
         {
             var verticalType = station == startStation && ValidBankTypes.Contains(station.StationType)
                 ? VerticalType.StartEdgeNoWaterBefore
@@ -316,6 +316,7 @@ namespace FlowTracker2Plugin
 
             var vertical = new Vertical
             {
+                SequenceNumber = sequenceNumber,
                 TaglinePosition = UnitConverter.ConvertDistance(station.Location),
                 Comments = station.Comment,
                 MeasurementTime = station.CreationTime,
