@@ -16,7 +16,7 @@ It is recommended that you use the most recent version of the plugin which match
 
 | AQTS Version | Latest compatible plugin Version |
 | --- | --- |
-| AQTS 2019.2+ | [v19.2.10](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.10/FlowTracker2Plugin.plugin) - Adds incrementing vertical numbers |
+| AQTS 2019.2+ | [v19.2.12](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.12/FlowTracker2Plugin.plugin) - Adds incrementing vertical numbers |
 | 2017.4 - 2019.1 | [v17.4.44](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v17.4.44/FlowTracker2Plugin.plugin) |
 
 ## Requirements for building the plugin from source
@@ -52,4 +52,4 @@ See the [PluginTester](https://github.com/AquaticInformatics/aquarius-field-data
 
 ## Installation of the plugin
 
-Use the [FieldDataPluginTool](https://github.com/AquaticInformatics/aquarius-field-data-framework/tree/master/src/FieldDataPluginTool) to install the plugin on your AQTS app server.
+Use the SystemConfig page to install/enable this plugin on your AQTS app server.
