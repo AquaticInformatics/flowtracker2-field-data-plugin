@@ -145,6 +145,11 @@ namespace FlowTracker2Plugin
 
                 _resultsAppender.AddDischargeActivity(visit, dischargeActivity);
 
+                manualGauging.MeterCalibration = manualGauging
+                    .Verticals
+                    .Select(v => v.VelocityObservation.MeterCalibration)
+                    .FirstOrDefault(mc => mc != null);
+
                 AddTemperatureReadings(visit);
 
                 return ParseFileResult.SuccessfullyParsedAndDataValid();
@@ -268,6 +273,7 @@ namespace FlowTracker2Plugin
                 : StartPointType.LeftEdgeOfWater;
             manualGauging.VelocityObservationMethod = FindMostCommonVelocityMethod();
             manualGauging.DischargeMethod = CreateDischargeMethodType();
+            manualGauging.Party = dischargeActivity.Party;
 
             dischargeActivity.ChannelMeasurements.Add(manualGauging);
 
