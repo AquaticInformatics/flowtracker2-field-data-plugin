@@ -16,7 +16,7 @@ It is recommended that you use the most recent version of the plugin which match
 
 | AQTS Version | Latest compatible plugin Version |
 | --- | --- |
-| AQTS 2019.2+ | [v19.2.12](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.12/FlowTracker2Plugin.plugin) - Adds incrementing vertical numbers |
+| AQTS 2019.2+ | [v19.2.13](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.13/FlowTracker2Plugin.plugin) - Adds Party and Primary Meter to channel measurement<br/>v19.2.12 - Adds incrementing vertical numbers |
 | 2017.4 - 2019.1 | [v17.4.44](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v17.4.44/FlowTracker2Plugin.plugin) |
 
 ## Requirements for building the plugin from source
