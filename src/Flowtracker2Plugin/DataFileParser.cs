@@ -225,7 +225,15 @@ namespace FlowTracker2Plugin
                 new DateTimeInterval(visit.StartDate, visit.EndDate), UnitConverter.ConvertDischarge(DataFile.Calculations.Discharge));
             dischargeActivity.Comments = DataFile.Properties.Comment;
             dischargeActivity.ActiveUncertaintyType = UncertaintyType.Quantitative;
-            dischargeActivity.QuantitativeUncertainty = DataFile.Calculations.UncertaintyIso.Overall * 100;
+
+            _resultsAppender.GetPluginConfigurations().TryGetValue("IsoUncertaintyScalar", out var scalarText);
+
+            if (!double.TryParse(scalarText, out var scalar))
+            {
+                scalar = 1.0;
+            }
+
+            dischargeActivity.QuantitativeUncertainty = scalar * DataFile.Calculations.UncertaintyIso.Overall * 100;
 
             return dischargeActivity;
         }
