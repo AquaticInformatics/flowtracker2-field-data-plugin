@@ -25,7 +25,7 @@ It is recommended that you use the most recent version of the plugin which match
 Starting with version 20.2.0, there are some configurable plugin settings which can be set in the Settings tab of the System Config Page.
 
 | Group | Key | Value | Description |
-|---|---|---|---|---|
+| --- |--- |--- | --- |
 | `FieldDataPluginConfig-FlowTracker2Plugin` | `IsoUncertaintyScalar` | `1.0` | This value will be used to scale the FlowTracker2 ISO uncertainty measurement, which defaults to a single standard devation (68% confidence interval).<br/><br/>A value of `1.96` will scale the uncertainty into a two-standard-deviation value (95% confidence interval).<br/><br/>Defaults to `1.0` if the value is missing or is not a valid number. |
 
 ## Requirements for building the plugin from source
