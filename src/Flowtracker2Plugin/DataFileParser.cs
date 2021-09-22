@@ -235,6 +235,12 @@ namespace FlowTracker2Plugin
 
             dischargeActivity.QuantitativeUncertainty = scalar * DataFile.Calculations.UncertaintyIso.Overall * 100;
 
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (scalar != 1.0)
+            {
+                dischargeActivity.QualityAssuranceComments = $"Scaled ISO uncertainty by {scalar}";
+            }
+
             return dischargeActivity;
         }
 
