@@ -446,7 +446,7 @@ namespace FlowTracker2Plugin
 
             meterCalibration.Equations.Add(new MeterCalibrationEquation
             {
-                InterceptUnitId = UnitSystem.DistanceUnitId
+                InterceptUnitId = UnitSystem.VelocityUnitId
             });
 
             return meterCalibration;

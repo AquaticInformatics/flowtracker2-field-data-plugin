@@ -16,7 +16,7 @@ It is recommended that you use the most recent version of the plugin which match
 
 | AQTS Version | Latest compatible plugin Version |
 | --- | --- |
-| AQTS 2020.2+ | [v20.2.3](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v20.2.3/FlowTracker2Plugin.plugin) - Adds configurable ISO Uncertainty Scalar |
+| AQTS 2020.2+ | [v20.2.4](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v20.2.4/FlowTracker2Plugin.plugin) - BUGFIX: Use a velocity unit for the meter calibration equation</br> v20.2.3 - Adds configurable ISO Uncertainty Scalar|
 | AQTS 2019.2 - 2020.1 | [v19.2.13](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v19.2.13/FlowTracker2Plugin.plugin) - Adds Party and Primary Meter to channel measurement<br/>v19.2.12 - Adds incrementing vertical numbers |
 | 2017.4 - 2019.1 | [v17.4.44](https://github.com/AquaticInformatics/flowtracker2-field-data-plugin/releases/download/v17.4.44/FlowTracker2Plugin.plugin) |
 
