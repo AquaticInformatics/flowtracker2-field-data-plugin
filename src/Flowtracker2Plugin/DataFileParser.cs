@@ -226,19 +226,27 @@ namespace FlowTracker2Plugin
             dischargeActivity.Comments = DataFile.Properties.Comment;
             dischargeActivity.ActiveUncertaintyType = UncertaintyType.Quantitative;
 
-            _resultsAppender.GetPluginConfigurations().TryGetValue("IsoUncertaintyScalar", out var scalarText);
+            var pluginConfigs = _resultsAppender.GetPluginConfigurations();
 
+            pluginConfigs.TryGetValue("IsoUncertaintyScalar", out var scalarText);
             if (!double.TryParse(scalarText, out var scalar))
             {
                 scalar = 1.0;
             }
 
-            dischargeActivity.QuantitativeUncertainty = scalar * DataFile.Calculations.UncertaintyIso.Overall * 100;
+            pluginConfigs.TryGetValue("UncertaintyMethod", out var methodText);
+            var method = (methodText ?? "ISO").Trim();
 
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (scalar != 1.0)
+            if (method.Equals("ISO", StringComparison.InvariantCultureIgnoreCase))
             {
-                dischargeActivity.QualityAssuranceComments = $"Scaled ISO uncertainty by {scalar}";
+                
+                dischargeActivity.QuantitativeUncertainty = scalar * DataFile.Calculations.UncertaintyIso.Overall * 100;
+                dischargeActivity.QualityAssuranceComments = $"Used ISO uncertainty, scaled by {scalar}.";
+            }
+            else
+            {
+                dischargeActivity.QuantitativeUncertainty = scalar * 2 * DataFile.Calculations.UncertaintyIve.Overall * 100;
+                dischargeActivity.QualityAssuranceComments = $"Used IVE (statistical) uncertainty, scaled by {scalar} and doubled (2σ).";
             }
 
             return dischargeActivity;
