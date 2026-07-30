@@ -10,6 +10,9 @@
 # Skip the deploy folder
 deploy/
 
+# Fody auto-generates this XML-schema file next to FodyWeavers.xml on every build (for IntelliSense)
+FodyWeavers.xsd
+
 # User-specific files
 *.suo
 *.user
